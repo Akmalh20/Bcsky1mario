@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Super Mario Chinese Learning Adventure - Unit 13</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        body {
+            font-family: 'Fredoka', 'Noto Sans SC', sans-serif;
+            background-color: #0f172a;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .chinese-text {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+        .btn-bounce {
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center relative select-none">
+
+    <!-- Main App Container -->
+    <div id="app-container" class="relative w-full max-w-5xl h-[100vh] md:h-[650px] bg-slate-800 rounded-none md:rounded-3xl overflow-hidden shadow-2xl border-0 md:border-4 border-amber-500/30 flex flex-col">
+
+        <!-- HEADER / SCOREBAR (Visible in game) -->
+        <div id="game-header" class="hidden absolute top-0 left-0 right-0 z-20 bg-slate-900/80 backdrop-blur-md px-4 py-2 border-b border-white/10 flex justify-between items-center text-sm md:text-base">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-500/20 px-3 py-1 rounded-full border border-amber-500/40 flex items-center space-x-1">
+                    <span class="text-amber-400">👤 Player:</span>
+                    <span id="display-player-name" class="font-bold text-amber-200">Student</span>
+                </div>
+                <div class="bg-rose-500/20 px-3 py-1 rounded-full border border-rose-500/40 flex items-center space-x-1">
+                    <span class="text-rose-400">❤️ Lives:</span>
+                    <span class="font-bold text-rose-200">∞ Unlimited</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="bg-yellow-500/20 px-4 py-1 rounded-full border border-yellow-500/40 font-bold text-yellow-300">
+                    ⭐ Score: <span id="display-score">0</span>
+                </div>
+                <div class="bg-emerald-500/20 px-3 py-1 rounded-full border border-emerald-500/40 text-emerald-300">
+                    📦 Quizzes: <span id="display-progress">0/8</span>
+                </div>
+                <button onclick="showNotesModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-xl text-xs font-bold transition">
+                    📖 Notes
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: WELCOME & NAME INPUT -->
+        <div id="screen-welcome" class="absolute inset-0 z-30 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 flex flex-col justify-center items-center p-6 text-center">
+            <div class="max-w-md w-full bg-slate-800/90 border border-indigo-500/30 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+                <div class="w-20 h-20 bg-gradient-to-tr from-amber-400 to-red-500 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-lg mb-4 animate-bounce-slow">
+                    🍄
+                </div>
+                <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-red-400 mb-2">
+                    Super Mario Chinese
+                </h1>
+                <p class="text-indigo-200 text-sm font-medium mb-6">
+                    Year 1 • Unit 13 Grammar & Vocabulary Adventure
+                </p>
+
+                <div class="space-y-4 text-left mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-300 uppercase tracking-wider mb-2">Enter Student Name:</label>
+                        <input type="text" id="input-student-name" placeholder="E.g. Alex" class="w-full bg-slate-900/80 border border-indigo-500/50 rounded-2xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 transition text-lg font-bold" value="Super Learner">
+                    </div>
+                </div>
+
+                <button onclick="goToInstructionsScreen()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-4 rounded-2xl text-xl shadow-lg btn-bounce flex items-center justify-center space-x-2">
+                    <span>CONTINUE</span>
+                    <span>➔</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: INSTRUCTIONS & INTERACTIVE NOTES -->
+        <div id="screen-instructions" class="hidden absolute inset-0 z-30 bg-slate-900/95 flex flex-col p-4 md:p-8 overflow-y-auto">
+            <div class="max-w-3xl mx-auto w-full bg-slate-800/80 border border-slate-700 p-6 md:p-8 rounded-3xl space-y-6">
+                
+                <!-- Header -->
+                <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-amber-400">📖 Learning Notes & How to Play</h2>
+                        <p class="text-xs text-slate-400">Master sentence pattern: <span class="chinese-text font-bold text-amber-200">我爱吃_____</span> (I love to eat _____)</p>
+                    </div>
+                    <span class="text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">Unit 13</span>
+                </div>
+
+                <!-- Sentence Structure Lesson -->
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-indigo-500/20 space-y-3">
+                    <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-wide">1. Sentence Grammar Notes</h3>
+                    <div class="grid grid-cols-4 gap-2 text-center font-bold">
+                        <div class="bg-indigo-900/50 p-2 rounded-xl border border-indigo-500/30">
+                            <div class="chinese-text text-xl text-amber-300">我</div>
+                            <div class="text-[10px] text-indigo-200">wǒ (I)</div>
+                        </div>
+                        <div class="bg-indigo-900/50 p-2 rounded-xl border border-indigo-500/30">
+                            <div class="chinese-text text-xl text-pink-300">爱</div>
+                            <div class="text-[10px] text-indigo-200">ài (love)</div>
+                        </div>
+                        <div class="bg-indigo-900/50 p-2 rounded-xl border border-indigo-500/30">
+                            <div class="chinese-text text-xl text-emerald-300">吃</div>
+                            <div class="text-[10px] text-indigo-200">chī (to eat)</div>
+                        </div>
+                        <div class="bg-amber-500/20 p-2 rounded-xl border border-amber-500/40 text-amber-300 flex items-center justify-center">
+                            [ Food ]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vocabulary Preview Grid -->
+                <div>
+                    <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-wide mb-3">2. Food Vocabulary (8 Words) - Tap to Listen</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center" id="vocab-preview-grid">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
+
+                <!-- Game Rules -->
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-xs space-y-2 text-amber-200">
+                    <h3 class="font-bold text-amber-400 text-sm">🎮 How to Play Super Mario Quiz:</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Use <kbd class="px-1.5 py-0.5 bg-slate-700 rounded text-white">◄</kbd> <kbd class="px-1.5 py-0.5 bg-slate-700 rounded text-white">►</kbd> or <kbd class="px-1.5 py-0.5 bg-slate-700 rounded text-white">A</kbd><kbd class="px-1.5 py-0.5 bg-slate-700 rounded text-white">D</kbd> to run, and <kbd class="px-1.5 py-0.5 bg-slate-700 rounded text-white">SPACE</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-700 rounded text-white">▲</kbd> to Jump.</li>
+                        <li>Look for the <span class="font-bold text-yellow-300">"▲ JUMP ▲"</span> markers directly under Question Blocks <span class="bg-amber-500 text-slate-900 font-bold px-1 rounded">?</span>.</li>
+                        <li><strong>Jump directly from below into blocks</strong> to unlock quizzes!</li>
+                        <li>Monsters patrol the platforms: collision deducts <strong>-20 points</strong>, but lives are <strong>UNLIMITED</strong>!</li>
+                        <li>In Quizzes: arrange tiles to spell <span class="chinese-text font-bold">我爱吃_____</span> matching the picture. Extra distractor tiles are present!</li>
+                        <li><span class="text-rose-300">Note:</span> Pressing "Show Pinyin" will hint Pinyin but deducts <strong>-10 points</strong>!</li>
+                    </ul>
+                </div>
+
+                <!-- Start Button -->
+                <button onclick="startGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black py-4 rounded-2xl text-xl shadow-xl btn-bounce">
+                    🚀 START ADVENTURE NOW
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: GAME CANVAS AREA -->
+        <div id="screen-game" class="relative w-full h-full flex-1 bg-sky-400 overflow-hidden">
+            <canvas id="gameCanvas"></canvas>
+
+            <!-- Touch Controls Overlay for Mobile/Tablet -->
+            <div id="touch-controls" class="absolute bottom-4 left-4 right-4 z-20 flex justify-between items-center pointer-events-none md:hidden">
+                <div class="flex space-x-3 pointer-events-auto">
+                    <button id="btn-left" class="w-14 h-14 bg-slate-900/70 border border-white/30 rounded-2xl text-2xl font-bold active:bg-amber-500 active:text-slate-950 flex items-center justify-center">
+                        ◀
+                    </button>
+                    <button id="btn-right" class="w-14 h-14 bg-slate-900/70 border border-white/30 rounded-2xl text-2xl font-bold active:bg-amber-500 active:text-slate-950 flex items-center justify-center">
+                        ▶
+                    </button>
+                </div>
+                <div class="pointer-events-auto">
+                    <button id="btn-jump" class="w-16 h-16 bg-amber-500/90 border-2 border-amber-300 text-slate-950 font-black rounded-full text-xl active:scale-90 flex items-center justify-center shadow-lg">
+                        JUMP
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 4: QUIZ MODAL -->
+        <div id="screen-quiz" class="hidden absolute inset-0 z-40 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="w-full max-w-lg bg-slate-800 border-2 border-amber-400/50 rounded-3xl p-6 shadow-2xl relative space-y-5 animate-fade-in">
+                
+                <!-- Quiz Header -->
+                <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">❓</span>
+                        <h3 class="text-lg font-black text-amber-400">Build the Chinese Sentence</h3>
+                    </div>
+                    <button id="btn-pinyin" onclick="togglePinyinHint()" class="bg-slate-700 hover:bg-slate-600 text-xs text-amber-300 border border-amber-400/30 px-3 py-1.5 rounded-xl font-bold transition flex items-center space-x-1">
+                        <span>💡 Show Pinyin (-10 pts)</span>
+                    </button>
+                </div>
+
+                <!-- Target Image & English Hint -->
+                <div class="bg-slate-900 p-4 rounded-2xl border border-slate-700 flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                    <div class="w-24 h-24 bg-slate-800 rounded-xl overflow-hidden border border-amber-500/30 flex-shrink-0 relative">
+                        <img id="quiz-food-img" class="w-full h-full object-cover" src="" alt="Food" onerror="handleImgError(this)" />
+                    </div>
+                    <div class="text-center sm:text-left space-y-1">
+                        <div class="text-xs text-slate-400 uppercase font-bold tracking-wider">English Meaning:</div>
+                        <div id="quiz-english-text" class="text-lg font-black text-amber-300">"I love to eat bread."</div>
+                        <div class="text-xs text-indigo-300">Arrange Chinese characters in correct order!</div>
+                    </div>
+                </div>
+
+                <!-- Sentence Slot Area -->
+                <div>
+                    <div class="text-xs font-bold text-slate-400 mb-2 uppercase">Your Sentence Answer:</div>
+                    <div id="sentence-target-zone" class="min-h-[64px] bg-slate-900/90 rounded-2xl border-2 border-dashed border-indigo-500/40 p-2 flex flex-wrap gap-2 items-center justify-center">
+                        <!-- Placed tiles go here -->
+                    </div>
+                </div>
+
+                <!-- Tile Bank / Selection -->
+                <div>
+                    <div class="text-xs font-bold text-slate-400 mb-2 uppercase">Select Character Tiles:</div>
+                    <div id="sentence-source-zone" class="min-h-[64px] bg-slate-900/50 rounded-2xl p-2 flex flex-wrap gap-2 items-center justify-center">
+                        <!-- Word tiles rendered here -->
+                    </div>
+                </div>
+
+                <!-- Feedback & Buttons -->
+                <div class="flex items-center justify-between pt-2">
+                    <button onclick="resetQuizTiles()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-xl text-xs font-bold">
+                        🔄 Clear
+                    </button>
+                    <button id="btn-submit-quiz" onclick="checkQuizAnswer()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 px-6 py-3 rounded-2xl font-black text-base shadow-lg btn-bounce">
+                        SUBMIT ANSWER ➔
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SCREEN 5: VICTORY / END GAME SCREEN -->
+        <div id="screen-victory" class="hidden absolute inset-0 z-50 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 flex flex-col justify-center items-center p-4 md:p-6 text-center overflow-y-auto">
+            <div id="scorecard-card" class="max-w-lg w-full bg-slate-800 border-2 border-amber-400/60 p-6 rounded-3xl shadow-2xl backdrop-blur-xl space-y-4 my-auto text-left">
+                <div class="text-center">
+                    <div class="text-5xl animate-bounce-slow mb-1">🏰 👑</div>
+                    <h2 class="text-2xl md:text-3xl font-black text-amber-400">COURSE COMPLETED!</h2>
+                    <p class="text-xs md:text-sm text-indigo-200 mt-1">Player: <span id="victory-player-name" class="font-bold text-white">Student</span></p>
+                </div>
+
+                <div class="bg-slate-900/90 p-3.5 rounded-2xl border border-slate-700 space-y-1.5 text-xs md:text-sm">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Total Score:</span>
+                        <span id="victory-score" class="text-lg font-black text-amber-300">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Quizzes Attempted:</span>
+                        <span id="victory-attempted" class="text-emerald-400 font-bold">8 / 8</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Grade:</span>
+                        <span id="victory-grade" class="text-amber-400 font-black">SUPERSTAR! 🌟🌟🌟</span>
+                    </div>
+                </div>
+
+                <!-- Review of Questions / Wrong Questions -->
+                <div>
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex justify-between items-center">
+                        <span>📝 Quiz Review & Summary</span>
+                        <span id="victory-accuracy-badge" class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Accuracy</span>
+                    </h3>
+                    <div id="quiz-results-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <div class="text-[11px] text-slate-400 text-center">
+                    Sentence structure: <span class="chinese-text font-bold text-amber-300">我爱吃_____</span> (Unit 13)
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                    <button onclick="downloadScorecardJPEG()" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 px-4 rounded-2xl text-xs md:text-sm shadow-lg btn-bounce flex items-center justify-center space-x-1">
+                        <span>📸 Save Scorecard (JPEG)</span>
+                    </button>
+                    <button onclick="restartGame()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black py-3 px-4 rounded-2xl text-xs md:text-sm shadow-lg btn-bounce flex items-center justify-center space-x-1">
+                        <span>🔄 Play Again</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Unit 13 Vocabulary Data List
+        const VOCAB_DATA = [
+            {
+                chinese: "面包",
+                pinyin: "miàn bāo",
+                english: "bread",
+                sentence: "我爱吃面包",
+                img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&auto=format&fit=crop&q=80",
+                distractors: ["米", "肉"]
+            },
+            {
+                chinese: "面",
+                pinyin: "miàn",
+                english: "noodles",
+                sentence: "我爱吃面",
+                img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&auto=format&fit=crop&q=80",
+                distractors: ["包", "菜"]
+            },
+            {
+                chinese: "包子",
+                pinyin: "bāo zi",
+                english: "steamed bun",
+                sentence: "我爱吃包子",
+                img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=200&auto=format&fit=crop&q=80",
+                distractors: ["饭", "鱼"]
+            },
+            {
+                chinese: "米饭",
+                pinyin: "mǐ fàn",
+                english: "rice",
+                sentence: "我爱吃米饭",
+                img: "https://images.unsplash.com/photo-1516684732162-798a0062be99?w=200&auto=format&fit=crop&q=80",
+                distractors: ["蛋", "汤"]
+            },
+            {
+                chinese: "汉堡包",
+                pinyin: "hàn bǎo bāo",
+                english: "hamburger",
+                sentence: "我爱吃汉堡包",
+                img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&auto=format&fit=crop&q=80",
+                distractors: ["狗", "饼"]
+            },
+            {
+                chinese: "苹果",
+                pinyin: "píng guǒ",
+                english: "apple",
+                sentence: "我爱吃苹果",
+                img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=200&auto=format&fit=crop&q=80",
+                distractors: ["桃", "梨"]
+            },
+            {
+                chinese: "巧克力",
+                pinyin: "qiǎo kè lì",
+                english: "chocolate",
+                sentence: "我爱吃巧克力",
+                img: "https://images.unsplash.com/photo-1511381939415-e44015466834?w=200&auto=format&fit=crop&q=80",
+                distractors: ["糖", "奶"]
+            },
+            {
+                chinese: "炸鸡",
+                pinyin: "zhá jī",
+                english: "fried chicken",
+                sentence: "我爱吃炸鸡",
+                img: "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=200&auto=format&fit=crop&q=80",
+                distractors: ["鸭", "牛"]
+            }
+        ];
+
+        // Pinyin mapping for character lookup
+        const PINYIN_MAP = {
+            '我': 'wǒ',
+            '爱': 'ài',
+            '吃': 'chī',
+            '面包': 'miàn bāo',
+            '面': 'miàn',
+            '包子': 'bāo zi',
+            '米饭': 'mǐ fàn',
+            '汉堡包': 'hàn bǎo bāo',
+            '苹果': 'píng guǒ',
+            '巧克力': 'qiǎo kè lì',
+            '炸鸡': 'zhá jī',
+            '米': 'mǐ',
+            '肉': 'ròu',
+            '包': 'bāo',
+            '菜': 'cài',
+            '饭': 'fàn',
+            '鱼': 'yú',
+            '蛋': 'dàn',
+            '汤': 'tāng',
+            '狗': 'gǒu',
+            '饼': 'bǐng',
+            '桃': 'táo',
+            '梨': 'lí',
+            '糖': 'táng',
+            '奶': 'nǎi',
+            '鸭': 'yā',
+            '牛': 'niú'
+        };
+
+        // Global State
+        let gameState = {
+            playerName: 'Student',
+            score: 0,
+            completedQuizzes: 0,
+            totalQuizzes: VOCAB_DATA.length,
+            isGameActive: false,
+            pinyinPenaltyUsed: false,
+            currentQuizIndex: null,
+            selectedTiles: [],
+            availableTiles: [],
+            quizResults: {}
+        };
+
+        // Web Audio Synthesizer for Retro Mario Sounds
+        const AudioSynth = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playJump() {
+                this.init();
+                if (!this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            },
+            playCoin() {
+                this.init();
+                if (!this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, this.ctx.currentTime);
+                osc.frequency.setValueAtTime(1318.51, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.3);
+            },
+            playHurt() {
+                this.init();
+                if (!this.ctx) return;
+                let osc = this.ctx.createOscillator();
+                let gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(60, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.2);
+            },
+            playVictory() {
+                this.init();
+                if (!this.ctx) return;
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+                notes.forEach((freq, idx) => {
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime + idx * 0.1);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.1 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.1);
+                    osc.stop(this.ctx.currentTime + idx * 0.1 + 0.2);
+                });
+            }
+        };
+
+        // Speech Synthesis for Pronunciation
+        function speakChinese(text) {
+            if ('speechSynthesis' in window) {
+                let utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.8;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function handleImgError(img) {
+            img.onerror = null;
+            img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23334155"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="30" fill="%23f59e0b">🍲</text></svg>';
+        }
+
+        function goToInstructionsScreen() {
+            const nameInput = document.getElementById('input-student-name').value.trim();
+            gameState.playerName = nameInput || 'Super Learner';
+            document.getElementById('display-player-name').innerText = gameState.playerName;
+
+            // Render Vocabulary Preview Grid in Notes Screen
+            const container = document.getElementById('vocab-preview-grid');
+            container.innerHTML = '';
+            VOCAB_DATA.forEach(v => {
+                let card = document.createElement('div');
+                card.className = 'bg-slate-900 border border-slate-700 hover:border-amber-400 p-2 rounded-2xl cursor-pointer transition btn-bounce flex flex-col items-center justify-between';
+                card.onclick = () => speakChinese(v.sentence);
+                card.innerHTML = `
+                    <div class="w-12 h-12 rounded-lg overflow-hidden mb-1">
+                        <img src="${v.img}" alt="${v.english}" class="w-full h-full object-cover" onerror="handleImgError(this)"/>
+                    </div>
+                    <div class="chinese-text font-bold text-amber-300 text-sm">${v.chinese}</div>
+                    <div class="text-[10px] text-slate-400">${v.pinyin}</div>
+                    <div class="text-[10px] text-indigo-300 font-semibold">${v.english}</div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-instructions').classList.remove('hidden');
+        }
+
+        function showNotesModal() {
+            gameState.isGameActive = false;
+            document.getElementById('screen-instructions').classList.remove('hidden');
+        }
+
+        function startGame() {
+            document.getElementById('screen-instructions').classList.add('hidden');
+            document.getElementById('game-header').classList.remove('hidden');
+            gameState.isGameActive = true;
+            initPlatformerEngine();
+        }
+
+        let canvas, ctx;
+        let animationFrameId;
+
+        let mario = {
+            x: 100,
+            y: 300,
+            w: 38,
+            h: 52,
+            vx: 0,
+            vy: 0,
+            speed: 4.5,
+            jumpStrength: 13.5,
+            isGrounded: false,
+            facing: 'right',
+            animFrame: 0,
+            animTimer: 0,
+            invulnerableTimer: 0
+        };
+
+        let keys = {
+            left: false,
+            right: false,
+            jump: false
+        };
+
+        let cameraX = 0;
+        let platforms = [];
+        let questionBlocks = [];
+        let monsters = [];
+        let castle = { x: 3800, y: 0, w: 120, h: 160 };
+
+        function initPlatformerEngine() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            setupInputListeners();
+            buildLevelMap();
+
+            mario.x = 100;
+            mario.y = 200;
+            mario.vx = 0;
+            mario.vy = 0;
+
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            gameLoop();
+        }
+
+        function resizeCanvas() {
+            const container = document.getElementById('screen-game');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        function buildLevelMap() {
+            platforms = [];
+            questionBlocks = [];
+            monsters = [];
+
+            const groundY = 480;
+
+            platforms.push({ x: 0, y: groundY, w: 1200, h: 120 });
+            platforms.push({ x: 1320, y: groundY, w: 1000, h: 120 });
+            platforms.push({ x: 2420, y: groundY, w: 1600, h: 120 });
+
+            platforms.push({ x: 450, y: 360, w: 180, h: 24 });
+            platforms.push({ x: 850, y: 340, w: 200, h: 24 });
+            platforms.push({ x: 1600, y: 350, w: 220, h: 24 });
+            platforms.push({ x: 2100, y: 340, w: 180, h: 24 });
+            platforms.push({ x: 2800, y: 350, w: 240, h: 24 });
+
+            const blockPositions = [
+                { x: 300, y: 350, vocabIdx: 0 },
+                { x: 520, y: 230, vocabIdx: 1 },
+                { x: 920, y: 210, vocabIdx: 2 },
+                { x: 1400, y: 350, vocabIdx: 3 },
+                { x: 1700, y: 220, vocabIdx: 4 },
+                { x: 2200, y: 210, vocabIdx: 5 },
+                { x: 2600, y: 350, vocabIdx: 6 },
+                { x: 2900, y: 220, vocabIdx: 7 }
+            ];
+
+            blockPositions.forEach(b => {
+                questionBlocks.push({
+                    x: b.x,
+                    y: b.y,
+                    w: 46,
+                    h: 46,
+                    vocabIdx: b.vocabIdx,
+                    active: true,
+                    bounce: 0
+                });
+            });
+
+            const monsterSpawns = [
+                { x: 500, minX: 350, maxX: 700 },
+                { x: 950, minX: 850, maxX: 1100 },
+                { x: 1500, minX: 1350, maxX: 1750 },
+                { x: 2000, minX: 1850, maxX: 2200 },
+                { x: 2700, minX: 2500, maxX: 2900 },
+                { x: 3200, minX: 3000, maxX: 3400 }
+            ];
+
+            monsterSpawns.forEach(m => {
+                monsters.push({
+                    x: m.x,
+                    y: groundY - 36,
+                    w: 36,
+                    h: 36,
+                    minX: m.minX,
+                    maxX: m.maxX,
+                    vx: 1.5,
+                    animFrame: 0
+                });
+            });
+
+            castle.x = 3700;
+            castle.y = groundY - 160;
+        }
+
+        function setupInputListeners() {
+            window.onkeydown = (e) => {
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+                if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w' || e.key === 'W') {
+                    if (!keys.jump && mario.isGrounded) {
+                        mario.vy = -mario.jumpStrength;
+                        mario.isGrounded = false;
+                        AudioSynth.playJump();
+                    }
+                    keys.jump = true;
+                }
+            };
+
+            window.onkeyup = (e) => {
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+                if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w' || e.key === 'W') keys.jump = false;
+            };
+
+            const btnLeft = document.getElementById('btn-left');
+            const btnRight = document.getElementById('btn-right');
+            const btnJump = document.getElementById('btn-jump');
+
+            const bindTouch = (elem, keyName) => {
+                elem.ontouchstart = (e) => { e.preventDefault(); keys[keyName] = true; };
+                elem.ontouchend = (e) => { e.preventDefault(); keys[keyName] = false; };
+                elem.onmousedown = () => { keys[keyName] = true; };
+                elem.onmouseup = () => { keys[keyName] = false; };
+            };
+
+            bindTouch(btnLeft, 'left');
+            bindTouch(btnRight, 'right');
+
+            btnJump.ontouchstart = (e) => {
+                e.preventDefault();
+                if (mario.isGrounded) {
+                    mario.vy = -mario.jumpStrength;
+                    mario.isGrounded = false;
+                    AudioSynth.playJump();
+                }
+            };
+            btnJump.onmousedown = () => {
+                if (mario.isGrounded) {
+                    mario.vy = -mario.jumpStrength;
+                    mario.isGrounded = false;
+                    AudioSynth.playJump();
+                }
+            };
+        }
+
+        function gameLoop() {
+            if (gameState.isGameActive) {
+                updatePhysics();
+                render2DScene();
+            }
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function updatePhysics() {
+            if (keys.left) {
+                mario.vx = -mario.speed;
+                mario.facing = 'left';
+            } else if (keys.right) {
+                mario.vx = mario.speed;
+                mario.facing = 'right';
+            } else {
+                mario.vx *= 0.8;
+            }
+
+            mario.vy += 0.55;
+            if (mario.vy > 12) mario.vy = 12;
+
+            let oldY = mario.y;
+
+            mario.x += mario.vx;
+            mario.y += mario.vy;
+
+            if (Math.abs(mario.vx) > 0.5 && mario.isGrounded) {
+                mario.animTimer++;
+                if (mario.animTimer % 6 === 0) {
+                    mario.animFrame = (mario.animFrame + 1) % 4;
+                }
+            } else {
+                mario.animFrame = 0;
+            }
+
+            if (mario.invulnerableTimer > 0) mario.invulnerableTimer--;
+
+            mario.isGrounded = false;
+
+            platforms.forEach(p => {
+                if (mario.x + mario.w > p.x && mario.x < p.x + p.w) {
+                    if (oldY + mario.h <= p.y && mario.y + mario.h >= p.y) {
+                        mario.y = p.y - mario.h;
+                        mario.vy = 0;
+                        mario.isGrounded = true;
+                    }
+                }
+            });
+
+            questionBlocks.forEach(box => {
+                if (box.bounce > 0) box.bounce -= 1;
+
+                if (mario.x + mario.w > box.x && mario.x < box.x + box.w) {
+                    if (oldY >= box.y + box.h && mario.y <= box.y + box.h) {
+                        mario.y = box.y + box.h;
+                        mario.vy = 2;
+
+                        if (box.active) {
+                            box.bounce = 10;
+                            AudioSynth.playCoin();
+                            openQuizModal(box.vocabIdx);
+                        }
+                    }
+                    else if (oldY + mario.h <= box.y && mario.y + mario.h >= box.y) {
+                        mario.y = box.y - mario.h;
+                        mario.vy = 0;
+                        mario.isGrounded = true;
+                    }
+                }
+            });
+
+            if (mario.y > canvas.height + 200) {
+                mario.x = Math.max(100, mario.x - 300);
+                mario.y = 100;
+                mario.vy = 0;
+                gameState.score = Math.max(0, gameState.score - 10);
+                document.getElementById('display-score').innerText = gameState.score;
+                AudioSynth.playHurt();
+            }
+
+            monsters.forEach(m => {
+                m.x += m.vx;
+                if (m.x < m.minX || m.x > m.maxX) m.vx *= -1;
+
+                if (mario.invulnerableTimer === 0 &&
+                    mario.x + mario.w > m.x + 4 &&
+                    mario.x < m.x + m.w - 4 &&
+                    mario.y + mario.h > m.y + 4 &&
+                    mario.y < m.y + m.h) {
+                    
+                    if (mario.vy > 0 && oldY + mario.h <= m.y + 10) {
+                        mario.vy = -8;
+                        m.x = -999;
+                        gameState.score += 20;
+                        AudioSynth.playCoin();
+                    } else {
+                        mario.invulnerableTimer = 60;
+                        mario.vy = -6;
+                        mario.vx = (mario.x < m.x) ? -6 : 6;
+                        gameState.score = Math.max(0, gameState.score - 20);
+                        AudioSynth.playHurt();
+                    }
+                    document.getElementById('display-score').innerText = gameState.score;
+                }
+            });
+
+            if (mario.x + mario.w >= castle.x + 40 && gameState.completedQuizzes >= gameState.totalQuizzes) {
+                triggerVictory();
+            }
+
+            cameraX = mario.x - canvas.width * 0.35;
+            if (cameraX < 0) cameraX = 0;
+        }
+
+        function render2DScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGrad.addColorStop(0, '#38bdf8');
+            skyGrad.addColorStop(0.7, '#bae6fd');
+            skyGrad.addColorStop(1, '#e0f2fe');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(-cameraX, 0);
+
+            ctx.fillStyle = '#10b981';
+            for (let i = 0; i < 10; i++) {
+                ctx.beginPath();
+                ctx.ellipse(i * 500, 480, 250, 120, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            platforms.forEach(p => {
+                ctx.fillStyle = '#22c55e';
+                ctx.fillRect(p.x, p.y, p.w, 12);
+
+                let dirtGrad = ctx.createLinearGradient(p.x, p.y + 12, p.x, p.y + p.h);
+                dirtGrad.addColorStop(0, '#b45309');
+                dirtGrad.addColorStop(1, '#78350f');
+                ctx.fillStyle = dirtGrad;
+                ctx.fillRect(p.x, p.y + 12, p.w, p.h - 12);
+
+                ctx.fillStyle = 'rgba(0,0,0,0.25)';
+                ctx.fillRect(p.x, p.y + p.h - 6, p.w, 6);
+                ctx.fillRect(p.x + p.w - 6, p.y, 6, p.h);
+            });
+
+            questionBlocks.forEach(box => {
+                let boxY = box.y - box.bounce;
+
+                if (box.active) {
+                    let blockGrad = ctx.createLinearGradient(box.x, boxY, box.x + box.w, boxY + box.h);
+                    blockGrad.addColorStop(0, '#fbbf24');
+                    blockGrad.addColorStop(1, '#d97706');
+                    ctx.fillStyle = blockGrad;
+                    ctx.fillRect(box.x, boxY, box.w, box.h);
+
+                    ctx.strokeStyle = '#78350f';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(box.x, boxY, box.w, box.h);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 26px Fredoka';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('?', box.x + box.w / 2, boxY + box.h / 2);
+
+                    ctx.fillStyle = '#e11d48';
+                    ctx.beginPath();
+                    let arrowY = box.y + box.h + 22 + Math.sin(Date.now() / 150) * 5;
+                    ctx.moveTo(box.x + box.w / 2, arrowY - 10);
+                    ctx.lineTo(box.x + box.w / 2 - 12, arrowY + 6);
+                    ctx.lineTo(box.x + box.w / 2 + 12, arrowY + 6);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.font = 'bold 10px Fredoka';
+                    ctx.fillText('JUMP', box.x + box.w / 2, arrowY + 18);
+
+                } else {
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillRect(box.x, boxY, box.w, box.h);
+                    ctx.strokeStyle = '#334155';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(box.x, boxY, box.w, box.h);
+
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.font = 'bold 20px Fredoka';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('✓', box.x + box.w / 2, boxY + box.h / 2);
+                }
+            });
+
+            monsters.forEach(m => {
+                if (m.x < 0) return;
+
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(m.x + m.w / 2, m.y + m.h / 2, m.w / 2, Math.PI, 0, false);
+                ctx.fillRect(m.x, m.y + m.h / 2, m.w, m.h / 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(m.x + 8, m.y + 10, 6, 10);
+                ctx.fillRect(m.x + 22, m.y + 10, 6, 10);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(m.x + (m.vx > 0 ? 11 : 9), m.y + 14, 3, 4);
+                ctx.fillRect(m.x + (m.vx > 0 ? 25 : 23), m.y + 14, 3, 4);
+
+                let footOffset = Math.sin(Date.now() / 100) * 4;
+                ctx.fillStyle = '#7f1d1d';
+                ctx.fillRect(m.x + 2, m.y + m.h - 4 + footOffset, 12, 6);
+                ctx.fillRect(m.x + m.w - 14, m.y + m.h - 4 - footOffset, 12, 6);
+            });
+
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(castle.x, castle.y, castle.w, castle.h);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(castle.x + 40, castle.y + 90, 40, 70);
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(castle.x - 60, castle.y - 40, 8, 200);
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(castle.x - 56, castle.y - 44, 10, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.moveTo(castle.x - 52, castle.y - 36);
+            ctx.lineTo(castle.x - 10, castle.y - 20);
+            ctx.lineTo(castle.x - 52, castle.y - 4);
+            ctx.fill();
+
+            if (mario.invulnerableTimer % 6 < 3) {
+                ctx.save();
+                ctx.translate(mario.x + mario.w / 2, mario.y + mario.h / 2);
+                if (mario.facing === 'left') ctx.scale(-1, 1);
+
+                ctx.fillStyle = '#1d4ed8';
+                ctx.fillRect(-12, 6, 24, 22);
+
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(-14, -6, 28, 14);
+
+                ctx.fillStyle = '#78350f';
+                if (!mario.isGrounded) {
+                    ctx.fillRect(-14, 26, 12, 10);
+                    ctx.fillRect(2, 20, 12, 10);
+                } else if (Math.abs(mario.vx) > 0.5) {
+                    let legOffsets = [
+                        { l: 26, r: 26 },
+                        { l: 30, r: 22 },
+                        { l: 26, r: 26 },
+                        { l: 22, r: 30 }
+                    ];
+                    let pose = legOffsets[mario.animFrame];
+                    ctx.fillRect(-14, pose.l, 12, 8);
+                    ctx.fillRect(2, pose.r, 12, 8);
+                } else {
+                    ctx.fillRect(-14, 26, 12, 8);
+                    ctx.fillRect(2, 26, 12, 8);
+                }
+
+                ctx.fillStyle = '#fde047';
+                ctx.fillRect(-12, -22, 24, 18);
+
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(-16, -28, 30, 10);
+                ctx.fillRect(-6, -28, 22, 5);
+
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(4, -18, 4, 6);
+                ctx.fillStyle = '#451a03';
+                ctx.fillRect(-2, -12, 14, 5);
+
+                ctx.restore();
+            }
+
+            ctx.restore();
+        }
+
+        function openQuizModal(vocabIdx) {
+            gameState.isGameActive = false;
+            gameState.currentQuizIndex = vocabIdx;
+            gameState.pinyinPenaltyUsed = false;
+
+            const quizData = VOCAB_DATA[vocabIdx];
+
+            document.getElementById('quiz-food-img').src = quizData.img;
+            document.getElementById('quiz-english-text').innerText = `"I love to eat ${quizData.english}."`;
+
+            const pinyinBtn = document.getElementById('btn-pinyin');
+            pinyinBtn.innerText = '💡 Show Pinyin (-10 pts)';
+            pinyinBtn.classList.remove('bg-amber-500', 'text-slate-950');
+
+            let correctTiles = ['我', '爱', '吃', quizData.chinese];
+            let allTiles = [...correctTiles, ...quizData.distractors];
+
+            allTiles.sort(() => Math.random() - 0.5);
+
+            gameState.selectedTiles = [];
+            gameState.availableTiles = allTiles.map((char, index) => ({ id: index, char: char }));
+
+            renderQuizTiles();
+            document.getElementById('screen-quiz').classList.remove('hidden');
+        }
+
+        function renderQuizTiles() {
+            const targetZone = document.getElementById('sentence-target-zone');
+            const sourceZone = document.getElementById('sentence-source-zone');
+
+            targetZone.innerHTML = '';
+            sourceZone.innerHTML = '';
+
+            if (gameState.selectedTiles.length === 0) {
+                targetZone.innerHTML = '<span class="text-xs text-slate-500 italic">Tap characters below to assemble sentence...</span>';
+            } else {
+                gameState.selectedTiles.forEach((tile, idx) => {
+                    let btn = createTileButton(tile, false);
+                    btn.onclick = () => removeTileFromTarget(idx);
+                    targetZone.appendChild(btn);
+                });
+            }
+
+            gameState.availableTiles.forEach((tile) => {
+                let btn = createTileButton(tile, true);
+                btn.onclick = () => addTileToTarget(tile);
+                sourceZone.appendChild(btn);
+            });
+        }
+
+        function createTileButton(tile, isSource) {
+            let btn = document.createElement('button');
+            btn.className = `px-4 py-3 rounded-2xl font-black text-xl chinese-text shadow-md btn-bounce flex flex-col items-center justify-center transition border-2 ${
+                isSource ? 'bg-slate-800 text-amber-300 border-indigo-500/40 hover:border-amber-400' : 'bg-amber-500 text-slate-950 border-amber-300'
+            }`;
+
+            let pinyinText = '';
+            if (gameState.pinyinPenaltyUsed) {
+                pinyinText = PINYIN_MAP[tile.char] || '';
+            }
+
+            btn.innerHTML = `
+                ${pinyinText ? `<span class="text-[10px] text-indigo-200 font-sans leading-none mb-1">${pinyinText}</span>` : ''}
+                <span>${tile.char}</span>
+            `;
+            return btn;
+        }
+
+        function addTileToTarget(tile) {
+            gameState.selectedTiles.push(tile);
+            gameState.availableTiles = gameState.availableTiles.filter(t => t.id !== tile.id);
+            renderQuizTiles();
+        }
+
+        function removeTileFromTarget(index) {
+            let removed = gameState.selectedTiles.splice(index, 1)[0];
+            gameState.availableTiles.push(removed);
+            renderQuizTiles();
+        }
+
+        function resetQuizTiles() {
+            if (gameState.currentQuizIndex === null) return;
+            openQuizModal(gameState.currentQuizIndex);
+        }
+
+        function togglePinyinHint() {
+            if (!gameState.pinyinPenaltyUsed) {
+                gameState.pinyinPenaltyUsed = true;
+                gameState.score = Math.max(0, gameState.score - 10);
+                document.getElementById('display-score').innerText = gameState.score;
+
+                const pinyinBtn = document.getElementById('btn-pinyin');
+                pinyinBtn.innerText = '💡 Pinyin Active (-10 Pts Deducted)';
+                pinyinBtn.classList.add('bg-amber-500', 'text-slate-950');
+
+                renderQuizTiles();
+            }
+        }
+
+        function checkQuizAnswer() {
+            const quizData = VOCAB_DATA[gameState.currentQuizIndex];
+            const currentSentence = gameState.selectedTiles.map(t => t.char).join('');
+            const expectedSentence = quizData.sentence;
+
+            const activeBlock = questionBlocks.find(b => b.vocabIdx === gameState.currentQuizIndex);
+            if (activeBlock) activeBlock.active = false;
+
+            if (currentSentence === expectedSentence) {
+                AudioSynth.playVictory();
+                speakChinese(expectedSentence);
+
+                gameState.score += 100;
+                gameState.completedQuizzes++;
+                gameState.quizResults[gameState.currentQuizIndex] = {
+                    correct: true,
+                    userAnswer: currentSentence,
+                    expectedSentence: expectedSentence
+                };
+
+                document.getElementById('display-score').innerText = gameState.score;
+                document.getElementById('display-progress').innerText = `${gameState.completedQuizzes}/${gameState.totalQuizzes}`;
+
+                document.getElementById('screen-quiz').classList.add('hidden');
+                gameState.isGameActive = true;
+
+            } else {
+                AudioSynth.playHurt();
+
+                gameState.completedQuizzes++;
+                gameState.quizResults[gameState.currentQuizIndex] = {
+                    correct: false,
+                    userAnswer: currentSentence || '(Tiada Jawapan / Kosong)',
+                    expectedSentence: expectedSentence
+                };
+
+                document.getElementById('display-score').innerText = gameState.score;
+                document.getElementById('display-progress').innerText = `${gameState.completedQuizzes}/${gameState.totalQuizzes}`;
+
+                document.getElementById('screen-quiz').classList.add('hidden');
+                gameState.isGameActive = true;
+            }
+        }
+
+        function triggerVictory() {
+            gameState.isGameActive = false;
+            AudioSynth.playVictory();
+
+            document.getElementById('victory-player-name').innerText = gameState.playerName;
+            document.getElementById('victory-score').innerText = gameState.score;
+            document.getElementById('victory-attempted').innerText = `${gameState.completedQuizzes} / ${gameState.totalQuizzes}`;
+
+            const resultsList = document.getElementById('quiz-results-list');
+            resultsList.innerHTML = '';
+
+            let correctCount = 0;
+
+            VOCAB_DATA.forEach((v, idx) => {
+                const res = gameState.quizResults[idx];
+                const item = document.createElement('div');
+                item.className = 'p-2.5 rounded-xl border flex items-center justify-between text-xs ';
+
+                if (res && res.correct) {
+                    correctCount++;
+                    item.className += 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200';
+                    item.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <span class="text-emerald-400 font-bold">✓</span>
+                            <div>
+                                <div class="font-bold chinese-text text-amber-300 text-sm">${v.sentence}</div>
+                                <div class="text-[10px] text-slate-400">${v.english} (${v.pinyin})</div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/40">BETUL</span>
+                    `;
+                } else {
+                    item.className += 'bg-rose-950/40 border-rose-500/30 text-rose-200';
+                    const userAns = res ? res.userAnswer : '(Belum Dijawab)';
+                    item.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <span class="text-rose-400 font-bold">✗</span>
+                            <div>
+                                <div class="font-bold chinese-text text-amber-300 text-sm">Jawapan Betul: ${v.sentence}</div>
+                                <div class="text-[10px] text-rose-300">Jawapan Murid: <span class="chinese-text font-bold">${userAns}</span></div>
+                                <div class="text-[10px] text-slate-400">${v.english} (${v.pinyin})</div>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded border border-rose-500/40">SALAH</span>
+                    `;
+                }
+                resultsList.appendChild(item);
+            });
+
+            document.getElementById('victory-accuracy-badge').innerText = `Ketepatan: ${correctCount}/${gameState.totalQuizzes}`;
+
+            let grade = 'SUPERSTAR! 🌟🌟🌟';
+            if (correctCount < 4) grade = 'TERUSKAN USAHA! 💪';
+            else if (correctCount < 7) grade = 'GREAT JOB! 🌟🌟';
+            document.getElementById('victory-grade').innerText = grade;
+
+            document.getElementById('screen-victory').classList.remove('hidden');
+        }
+
+        function downloadScorecardJPEG() {
+            const card = document.getElementById('scorecard-card');
+            if (!card) return;
+
+            html2canvas(card, {
+                backgroundColor: '#1e293b',
+                scale: 2,
+                useCORS: true
+            }).then(canvas => {
+                const imageURL = canvas.toDataURL('image/jpeg', 0.95);
+                const link = document.createElement('a');
+                link.download = `Scorecard_${gameState.playerName.replace(/\s+/g, '_')}_Unit13.jpg`;
+                link.href = imageURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(err => {
+                console.error('Export JPEG error:', err);
+            });
+        }
+
+        function restartGame() {
+            gameState.score = 0;
+            gameState.completedQuizzes = 0;
+            gameState.quizResults = {};
+            document.getElementById('display-score').innerText = '0';
+            document.getElementById('display-progress').innerText = `0/${gameState.totalQuizzes}`;
+            document.getElementById('screen-victory').classList.add('hidden');
+
+            startGame();
+        }
+    </script>
+</body>
+</html>
